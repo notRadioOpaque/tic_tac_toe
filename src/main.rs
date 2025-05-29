@@ -45,8 +45,21 @@ fn main() {
             continue;
         };
 
+        match check_winner(board) {
+            Some(winner) => {
+                if winner == 'X' {
+                    println!("{}", "X wins ✨".bold().blue())
+                } else {
+                    println!("{}", "O wins ✨".bold().green())
+                }
+            }
+            None => {
+                println!("No winner yet.");
+                is_x_turn = !is_x_turn; // switching turns here...
+            }
+        }
+
         board[index] = player.chars().next().unwrap();
-        is_x_turn = !is_x_turn; // switching turns here...
     }
 }
 
@@ -68,4 +81,28 @@ fn draw_board(board: &[char]) {
             print!("|");
         }
     }
+}
+
+fn check_winner(board: [char; 9]) -> Option<char> {
+    let wins = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [1, 4, 7],
+        [2, 5, 8],
+        [3, 6, 9],
+        [1, 5, 9],
+        [3, 5, 7],
+    ];
+
+    for &line in &wins {
+        let [a, b, c] = line;
+        let (i, j, k) = (a - 1, b - 1, c - 1); // converting to 0 based index
+
+        if board[i] == board[j] && board[j] == board[k] && (board[i] == 'X' || board[i] == 'O') {
+            return Some(board[i]);
+        }
+    }
+
+    None
 }
