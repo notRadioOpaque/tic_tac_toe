@@ -5,21 +5,39 @@ use std::io::{self, Write};
 fn main() {
     println!("\n{}", "tic tac toe".blue());
 
-    let mut board: [char; 9] = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    let mut board: [String; 9] = [
+        "1".into(),
+        "2".into(),
+        "3".into(),
+        "4".into(),
+        "5".into(),
+        "6".into(),
+        "7".into(),
+        "8".into(),
+        "9".into(),
+    ];
+
     let mut is_x_turn = true;
+    let mut is_game_won = false;
+    let mut turns = 9;
 
-    loop {
-        draw_board(&board);
-        let player = if is_x_turn { "X" } else { "O" };
+    draw_board(&board);
 
-        println!("\n{}'s turn.\n", player.blue());
+    while !is_game_won {
+        let player_symbol = if is_x_turn { "X" } else { "O" };
+        let player_display = if is_x_turn {
+            player_symbol.blue()
+        } else {
+            player_symbol.green()
+        };
+
+        println!("\n{}'s turn.\n", player_display);
         print!("Select a position or type '{}' to quit: ", "q".red());
         io::stdout().flush().unwrap();
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
 
-        // quitting the game...
         if input.trim() == "q" {
             println!("\nSee you next time!😊");
             break;
@@ -40,40 +58,61 @@ fn main() {
 
         let index = val - 1;
 
-        if board[index] == 'X' || board[index] == 'O' {
+        if board[index] == "X" || board[index] == "O" {
             println!("{}", "That spot is already taken.".yellow());
             continue;
         };
 
-        match check_winner(board) {
+        board[index] = player_symbol.to_string();
+
+        turns -= 1;
+
+        draw_board(&board);
+
+        match check_winner(&board) {
             Some(winner) => {
-                if winner == 'X' {
-                    println!("{}", "X wins ✨".bold().blue())
+                is_game_won = true;
+
+                if winner == "X" {
+                    println!();
+                    println!("{}", "X wins ✨".bold().blue());
+                    println!();
                 } else {
-                    println!("{}", "O wins ✨".bold().green())
+                    println!();
+                    println!("{}", "O wins ✨".bold().green());
+                    println!();
                 }
             }
             None => {
-                println!("No winner yet.");
-                is_x_turn = !is_x_turn; // switching turns here...
+                if turns == 0 {
+                    println!();
+                    println!("{}", "Draw! Well played, go harder next time 💪".yellow());
+                    println!();
+                    break;
+                }
+
+                is_x_turn = !is_x_turn;
             }
         }
-
-        board[index] = player.chars().next().unwrap();
     }
 }
 
 // defining board layout
 
-fn draw_board(board: &[char]) {
+fn draw_board(board: &[String]) {
     println!();
 
     for (i, cell) in board.iter().enumerate() {
-        print!(" {} ", cell);
+        let display = match cell.as_str() {
+            "X" => cell.blue().bold().to_string(),
+            "O" => cell.green().bold().to_string(),
+            _ => cell.clone(),
+        };
+
+        print!(" {} ", display);
 
         if (i + 1) % 3 == 0 {
             println!();
-
             if i < 8 {
                 println!("---+---+---")
             };
@@ -83,7 +122,7 @@ fn draw_board(board: &[char]) {
     }
 }
 
-fn check_winner(board: [char; 9]) -> Option<char> {
+fn check_winner(board: &[String; 9]) -> Option<String> {
     let wins = [
         [1, 2, 3],
         [4, 5, 6],
@@ -99,8 +138,8 @@ fn check_winner(board: [char; 9]) -> Option<char> {
         let [a, b, c] = line;
         let (i, j, k) = (a - 1, b - 1, c - 1); // converting to 0 based index
 
-        if board[i] == board[j] && board[j] == board[k] && (board[i] == 'X' || board[i] == 'O') {
-            return Some(board[i]);
+        if board[i] == board[j] && board[j] == board[k] && (board[i] == "X" || board[i] == "O") {
+            return Some(board[i].clone());
         }
     }
 
